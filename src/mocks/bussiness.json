@@ -1,0 +1,50 @@
+[
+  {
+    "id": "b1e5c2a3-8f47-4a7d-b2c5-6d8e9f0a1b2c",
+    "name": "Supermercado Central",
+    "email": "central@supermarket.com",
+    "phone": "+1234567890",
+    "address": "Av. Principal 123",
+    "tax_id": "TAX123456",
+    "logo_url": "https://example.com/logo1.png",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z",
+    "is_active": true,
+    "license_start_date": "2024-01-01T00:00:00Z",
+    "license_end_date": "2025-01-01T00:00:00Z",
+    "tables_enabled": true,
+    "features": { "restaurant": false, "inventory": true }
+  },
+  {
+    "id": "c2f6d3b4-9g58-5b8e-c3d6-7e9f0a1b2c3d",
+    "name": "Tienda Express",
+    "email": "express@store.com",
+    "phone": "+0987654321",
+    "address": "Calle Secundaria 456",
+    "tax_id": "TAX654321",
+    "logo_url": "https://example.com/logo2.png",
+    "created_at": "2024-02-20T14:30:00Z",
+    "updated_at": "2024-02-20T14:30:00Z",
+    "is_active": true,
+    "license_start_date": "2024-02-01T00:00:00Z",
+    "license_end_date": "2025-02-01T00:00:00Z",
+    "tables_enabled": false,
+    "features": { "restaurant": true, "delivery": true }
+  },
+  {
+    "id": "d3g7e4c5-0h69-6c9f-d4e7-8a0b1c2d3e4f",
+    "name": "Minimarket Familiar",
+    "email": "familiar@minimarket.com",
+    "phone": "+1122334455",
+    "address": "Plaza Comercial 789",
+    "tax_id": "TAX789012",
+    "logo_url": "https://example.com/logo3.png",
+    "created_at": "2024-03-10T09:15:00Z",
+    "updated_at": "2024-03-10T09:15:00Z",
+    "is_active": true,
+    "license_start_date": "2024-03-01T00:00:00Z",
+    "license_end_date": "2025-03-01T00:00:00Z",
+    "tables_enabled": true,
+    "features": { "restaurant": true, "cafe": true }
+  }
+]
