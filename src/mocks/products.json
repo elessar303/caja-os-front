@@ -28,7 +28,7 @@
     "is_weighable": false,
     "is_editable_price": true,
     "tax_included": true,
-    "current_stock": "50.00",
+    "current_stock": "12.00",
     "min_stock": "10.00",
     "created_at": "2024-01-16T08:05:00Z",
     "updated_at": "2024-01-16T08:05:00Z"

@@ -1,12 +1,25 @@
-import { useState, useRef, useContext } from "react";
+import { useState, useRef, useContext, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { TabsContainer, Tabs, Tab, NavButton, LoadingMessage } from "./styled";
 import { AppContext } from "../../context/app";
 
-export default function CategoryTabs() {
+interface CategoryTabsProps {
+  onCategoryChange: (categoryId: string | null) => void;
+}
+
+export default function CategoryTabs({ onCategoryChange }: CategoryTabsProps) {
   const { categories, categoriesLoading } = useContext(AppContext);
   const [activeTab, setActiveTab] = useState<string>("todos");
   const tabsRef = useRef<HTMLDivElement>(null);
+
+  // Notificar al componente padre cuando cambia la categoría activa
+  useEffect(() => {
+    if (activeTab === "todos") {
+      onCategoryChange(null);
+    } else {
+      onCategoryChange(activeTab);
+    }
+  }, [activeTab, onCategoryChange]);
 
   const scroll = (direction: "left" | "right") => {
     if (tabsRef.current) {
@@ -37,18 +50,28 @@ export default function CategoryTabs() {
         <FaChevronLeft />
       </NavButton>
       <Tabs ref={tabsRef}>
+        {/* Box "Todos" siempre visible al inicio */}
+        <Tab
+          key="todos"
+          isActive={activeTab === "todos"}
+          onClick={() => setActiveTab("todos")}
+        >
+          <div className="circle">*</div>
+          <span className="label">Todos</span>
+        </Tab>
+
         {categories.length > 0 ? (
           categories.map((category) => {
-            const initial = category.description.charAt(0).toUpperCase();
+            const initial = category.name.charAt(0).toUpperCase();
 
             return (
               <Tab
                 key={category.id}
-                active={activeTab === category.id}
+                isActive={activeTab === category.id}
                 onClick={() => setActiveTab(category.id)}
               >
                 <div className="circle">{initial}</div>
-                <span className="label">{category.description}</span>
+                <span className="label">{category.name}</span>
               </Tab>
             );
           })

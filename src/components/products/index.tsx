@@ -6,27 +6,38 @@ import { AppContext } from "../../context/app";
 
 interface ProductGridProps {
   searchTerm: string;
+  selectedCategoryId: string | null;
 }
 
-export default function ProductGrid({ searchTerm }: ProductGridProps) {
+export default function ProductGrid({ searchTerm, selectedCategoryId }: ProductGridProps) {
   const { products, productsLoading } = useContext(AppContext);
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage, setProductsPerPage] = useState(12);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  // Filtrar productos por nombre o código de barras
+  // Filtrar productos por categoría, nombre o código de barras
   const filteredProducts = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return products;
+    let filtered = products;
+
+    // Filtrar por categoría si hay una seleccionada
+    if (selectedCategoryId) {
+      filtered = filtered.filter(
+        (product) => product.category_id === selectedCategoryId
+      );
     }
 
-    const searchLower = searchTerm.toLowerCase().trim();
-    return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchLower) ||
-        product.barcode.toLowerCase().includes(searchLower)
-    );
-  }, [products, searchTerm]);
+    // Filtrar por búsqueda si hay un término de búsqueda
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase().trim();
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchLower) ||
+          product.barcode.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return filtered;
+  }, [products, searchTerm, selectedCategoryId]);
 
   // Calcular cuántos productos caben en la grid
   useEffect(() => {
@@ -94,10 +105,10 @@ export default function ProductGrid({ searchTerm }: ProductGridProps) {
     };
   }, []);
 
-  // Resetear a página 1 cuando cambian los productos filtrados o el término de búsqueda
+  // Resetear a página 1 cuando cambian los productos filtrados, el término de búsqueda o la categoría
   useEffect(() => {
     setCurrentPage(1);
-  }, [filteredProducts, searchTerm]);
+  }, [filteredProducts, searchTerm, selectedCategoryId]);
 
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
   const startIndex = (currentPage - 1) * productsPerPage;
@@ -140,10 +151,8 @@ export default function ProductGrid({ searchTerm }: ProductGridProps) {
         {currentProducts.length > 0 ? (
           currentProducts.map((p, i) => (
             <ProductCard
-              key={`${p.name}-${startIndex + i}`}
-              name={p.name}
-              price={p.price}
-              barcode={p.barcode}
+              key={`${p.id}-${startIndex + i}`}
+              product={p}
             />
           ))
         ) : (

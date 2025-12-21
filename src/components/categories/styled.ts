@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import type React from "react";
 
 export const TabsContainer = styled.div`
   position: relative;
@@ -32,10 +33,12 @@ export const Tabs = styled.div`
 `;
 
 interface NavButtonProps {
-  position: "left" | "right";
+  position?: "left" | "right";
 }
 
-export const NavButton = styled.button<NavButtonProps>`
+export const NavButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== "position",
+})<NavButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>>`
   background: transparent;
   border: none;
   display: flex;
@@ -65,10 +68,12 @@ export const NavButton = styled.button<NavButtonProps>`
 `;
 
 interface TabProps {
-  active?: boolean;
+  isActive?: boolean;
 }
 
-export const Tab = styled.button<TabProps>`
+export const Tab = styled.button.withConfig({
+  shouldForwardProp: (prop) => prop !== "isActive",
+})<TabProps>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -110,8 +115,8 @@ export const Tab = styled.button<TabProps>`
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  background: ${({ active, theme }) =>
-    active
+  background: ${({ isActive, theme }) =>
+    isActive
       ? `
         linear-gradient(
           0deg,
@@ -123,8 +128,8 @@ export const Tab = styled.button<TabProps>`
       : theme.colors.bgSoft};
 
   border: 2px solid
-    ${({ active, theme }) =>
-      active ? theme.colors.greenBorder : "transparent"};
+    ${({ isActive, theme }) =>
+      isActive ? theme.colors.greenBorder : "transparent"};
 
   color: ${({ theme }) => theme.text};
   font-weight: 500;
@@ -137,8 +142,8 @@ export const Tab = styled.button<TabProps>`
   &:hover {
     border-color: ${({ theme }) => theme.colors.greenBorder};
 
-    background: ${({ active, theme }) =>
-      active
+    background: ${({ isActive, theme }) =>
+      isActive
         ? `
           linear-gradient(
             0deg,
@@ -155,8 +160,8 @@ export const Tab = styled.button<TabProps>`
     border-color: ${({ theme }) => theme.colors.greenBorder};
   }
 
-  ${({ active, theme }) =>
-    active &&
+  ${({ isActive, theme }) =>
+    isActive &&
     `border-color: ${theme.colors.greenBorder};
     .circle {
       background: ${theme.colors.greenSoft};

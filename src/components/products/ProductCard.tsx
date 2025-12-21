@@ -4,25 +4,22 @@ import { AppContext } from "../../context/app";
 import type { Product } from "../../api/products";
 
 interface Props {
-  name: string;
-  price: string;
-  barcode: string;
+  product: Product;
 }
 
-export default function ProductCard({ name, price, barcode }: Props) {
+export default function ProductCard({ product }: Props) {
   const { addSellProduct } = useContext(AppContext);
 
   const handleClick = () => {
-    const product: Product = { name, price, barcode };
     addSellProduct(product);
   };
 
   return (
     <Card onClick={handleClick}>
       <Img />
-      <Barcode>{barcode}</Barcode>
-      <Name>{name}</Name>
-      <Price>{price}</Price>
+      <Barcode>{product.barcode}</Barcode>
+      <Name>{product.name}</Name>
+      <Price>{product.price}</Price>
     </Card>
   );
 }

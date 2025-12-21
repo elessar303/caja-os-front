@@ -19,6 +19,9 @@ import {
   HeaderItem,
   MiddleHeaderButton,
   MiddleHeaderGroup,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbSeparator,
 } from "./styled";
 import { ThemeContext } from "../../context/theme";
 import { AppContext } from "../../context/app";
@@ -27,12 +30,14 @@ interface HeaderProps {
   isSettingsOpen: boolean;
   onSettingsToggle: () => void;
   onBackToMain: () => void;
+  settingsView?: "main" | "products" | "stock" | "users";
 }
 
 export default function Header({
   isSettingsOpen,
   onSettingsToggle,
   onBackToMain,
+  settingsView = "main",
 }: HeaderProps) {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
   const { sellProducts } = useContext(AppContext);
@@ -63,6 +68,29 @@ export default function Header({
           <HeaderItem onClick={onBackToMain}>
             <FaArrowLeft />
           </HeaderItem>
+          <Breadcrumb>
+            <BreadcrumbItem isActive={settingsView === "main"}>
+              Configuración
+            </BreadcrumbItem>
+            {settingsView === "products" && (
+              <>
+                <BreadcrumbSeparator> / </BreadcrumbSeparator>
+                <BreadcrumbItem isActive>Productos</BreadcrumbItem>
+              </>
+            )}
+            {settingsView === "stock" && (
+              <>
+                <BreadcrumbSeparator> / </BreadcrumbSeparator>
+                <BreadcrumbItem isActive>Stock</BreadcrumbItem>
+              </>
+            )}
+            {settingsView === "users" && (
+              <>
+                <BreadcrumbSeparator> / </BreadcrumbSeparator>
+                <BreadcrumbItem isActive>Usuarios</BreadcrumbItem>
+              </>
+            )}
+          </Breadcrumb>
         </HeaderGroup>
       )}
 
@@ -70,7 +98,7 @@ export default function Header({
       {!isSettingsOpen && (
         <MiddleHeaderGroup>
           <MiddleHeaderButton
-            active={activeButton === "mesas"}
+            isActive={activeButton === "mesas"}
             isFirst
             onClick={() =>
               setActiveButton(activeButton === "mesas" ? null : "mesas")
@@ -81,7 +109,7 @@ export default function Header({
           </MiddleHeaderButton>
 
           <MiddleHeaderButton
-            active={activeButton === "pedidos"}
+            isActive={activeButton === "pedidos"}
             onClick={() =>
               setActiveButton(activeButton === "pedidos" ? null : "pedidos")
             }
@@ -91,7 +119,7 @@ export default function Header({
           </MiddleHeaderButton>
 
           <MiddleHeaderButton
-            active={activeButton === "cobrar"}
+            isActive={activeButton === "cobrar"}
             disabled={!canCharge}
             onClick={() => {
               if (canCharge) {
@@ -104,7 +132,7 @@ export default function Header({
           </MiddleHeaderButton>
 
           <MiddleHeaderButton
-            active={activeButton === "efectivo"}
+            isActive={activeButton === "efectivo"}
             onClick={() =>
               setActiveButton(activeButton === "efectivo" ? null : "efectivo")
             }
@@ -114,7 +142,7 @@ export default function Header({
           </MiddleHeaderButton>
 
           <MiddleHeaderButton
-            active={activeButton === "transferencia"}
+            isActive={activeButton === "transferencia"}
             onClick={() =>
               setActiveButton(
                 activeButton === "transferencia" ? null : "transferencia"
@@ -126,7 +154,7 @@ export default function Header({
           </MiddleHeaderButton>
 
           <MiddleHeaderButton
-            active={activeButton === "qr"}
+            isActive={activeButton === "qr"}
             isLast
             onClick={() => setActiveButton(activeButton === "qr" ? null : "qr")}
           >
@@ -141,7 +169,7 @@ export default function Header({
         <HeaderItem onClick={toggleTheme}>
           {darkMode ? <FaSun /> : <FaMoon />}
         </HeaderItem>
-        <HeaderItem active={isSettingsOpen} onClick={onSettingsToggle}>
+        <HeaderItem isActive={isSettingsOpen} onClick={onSettingsToggle}>
           <FaBars />
         </HeaderItem>
       </HeaderGroup>

@@ -13,13 +13,30 @@ import ProductGrid from "./components/products";
 export default function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingsView, setSettingsView] = useState<"main" | "products" | "stock" | "users">("main");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   const handleSettingsToggle = () => {
     setIsSettingsOpen(true);
+    setSettingsView("main");
   };
 
   const handleBackToMain = () => {
-    setIsSettingsOpen(false);
+    if (settingsView === "products" || settingsView === "stock" || settingsView === "users") {
+      setSettingsView("main");
+      setIsSettingsOpen(true); // Mantener settings abierto pero volver a la vista principal
+    } else {
+      setIsSettingsOpen(false);
+      setSettingsView("main");
+    }
+  };
+
+  const handleSettingsNavigation = (view: "main" | "products" | "stock" | "users") => {
+    setSettingsView(view);
+  };
+
+  const handleCategoryChange = (categoryId: string | null) => {
+    setSelectedCategoryId(categoryId);
   };
 
   return (
@@ -39,9 +56,10 @@ export default function App() {
         }}
       >
         <Header
-          isSettingsOpen={isSettingsOpen}
+          isSettingsOpen={isSettingsOpen || settingsView !== "main"}
           onSettingsToggle={handleSettingsToggle}
           onBackToMain={handleBackToMain}
+          settingsView={settingsView}
         />
 
         <div
@@ -58,13 +76,16 @@ export default function App() {
           {!isSettingsOpen && <Sidebar />}
 
           <MainContent>
-            {isSettingsOpen ? (
-              <Settings />
+            {isSettingsOpen || settingsView !== "main" ? (
+              <Settings 
+                onNavigate={handleSettingsNavigation} 
+                currentView={settingsView}
+              />
             ) : (
               <>
                 <SearchBar onSearchChange={setSearchTerm} />
-                <CategoryTabs />
-                <ProductGrid searchTerm={searchTerm} />
+                <CategoryTabs onCategoryChange={handleCategoryChange} />
+                <ProductGrid searchTerm={searchTerm} selectedCategoryId={selectedCategoryId} />
               </>
             )}
           </MainContent>

@@ -2,8 +2,11 @@ import React, { createContext, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
 import type { Product } from "../api/products";
 import type { Category } from "../api/categories";
+import type { User } from "../api/users";
 import { fetchProducts } from "../api/products";
 import { fetchCategories } from "../api/categories";
+import { fetchUsers } from "../api/users";
+import { FIXED_BUSINESS_ID } from "../constants/business";
 
 export interface SellProduct {
   id: string;
@@ -23,6 +26,10 @@ interface AppContextProps {
   categoriesLoading: boolean;
   categoriesError: string | null;
   loadCategories: () => Promise<void>;
+  users: User[];
+  usersLoading: boolean;
+  usersError: string | null;
+  loadUsers: () => Promise<void>;
   sellProducts: SellProduct[];
   addSellProduct: (product: Product) => void;
   updateSellProductQuantity: (id: string, quantity: number) => void;
@@ -40,6 +47,10 @@ const initialState: AppContextProps = {
   categoriesLoading: false,
   categoriesError: null,
   loadCategories: async () => {},
+  users: [],
+  usersLoading: false,
+  usersError: null,
+  loadUsers: async () => {},
   sellProducts: [],
   addSellProduct: () => {},
   updateSellProductQuantity: () => {},
@@ -63,6 +74,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [categoriesLoading, setCategoriesLoading] = useState<boolean>(false);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
 
+  const [users, setUsers] = useState<User[]>([]);
+  const [usersLoading, setUsersLoading] = useState<boolean>(false);
+  const [usersError, setUsersError] = useState<string | null>(null);
+
   const [sellProducts, setSellProducts] = useState<SellProduct[]>([]);
 
   const loadProducts = useCallback(async () => {
@@ -70,7 +85,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     setProductsError(null);
 
     try {
-      const productsData = await fetchProducts();
+      const productsData = await fetchProducts(FIXED_BUSINESS_ID);
       setProducts(productsData);
     } catch (err) {
       setProductsError(
@@ -87,7 +102,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     setCategoriesError(null);
 
     try {
-      const categoriesData = await fetchCategories();
+      const categoriesData = await fetchCategories(FIXED_BUSINESS_ID);
       setCategories(categoriesData);
     } catch (err) {
       setCategoriesError(
@@ -96,6 +111,25 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       console.error("Error loading categories:", err);
     } finally {
       setCategoriesLoading(false);
+    }
+  }, []);
+
+  const loadUsers = useCallback(async () => {
+    setUsersLoading(true);
+    setUsersError(null);
+
+    try {
+      // Usar el business_id específico para usuarios según la especificación
+      const usersBusinessId = "d3g7e4c5-0h69-6c9f-d4e7-8a0b1c2d3e4f";
+      const usersData = await fetchUsers(usersBusinessId);
+      setUsers(usersData);
+    } catch (err) {
+      setUsersError(
+        err instanceof Error ? err.message : "Error al cargar usuarios"
+      );
+      console.error("Error loading users:", err);
+    } finally {
+      setUsersLoading(false);
     }
   }, []);
 
@@ -134,26 +168,29 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     setSellProducts((prev) => prev.filter((sp) => sp.id !== id));
   }, []);
 
-  const updateSellProductQuantity = useCallback((id: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeSellProduct(id);
-      return;
-    }
-    setSellProducts((prev) =>
-      prev.map((sp) => {
-        if (sp.id === id) {
-          const previousQuantity = sp.quantity;
-          const difference = quantity - previousQuantity;
-          return {
-            ...sp,
-            quantity,
-            addedQuantity: Math.max(0, (sp.addedQuantity || 0) + difference),
-          };
-        }
-        return sp;
-      })
-    );
-  }, [removeSellProduct]);
+  const updateSellProductQuantity = useCallback(
+    (id: string, quantity: number) => {
+      if (quantity <= 0) {
+        removeSellProduct(id);
+        return;
+      }
+      setSellProducts((prev) =>
+        prev.map((sp) => {
+          if (sp.id === id) {
+            const previousQuantity = sp.quantity;
+            const difference = quantity - previousQuantity;
+            return {
+              ...sp,
+              quantity,
+              addedQuantity: Math.max(0, (sp.addedQuantity || 0) + difference),
+            };
+          }
+          return sp;
+        })
+      );
+    },
+    [removeSellProduct]
+  );
 
   const updateSellProductNote = useCallback((id: string, note: string) => {
     setSellProducts((prev) =>
@@ -168,7 +205,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   useEffect(() => {
     loadProducts();
     loadCategories();
-  }, [loadProducts, loadCategories]);
+    loadUsers();
+  }, [loadProducts, loadCategories, loadUsers]);
 
   return (
     <AppContext.Provider
@@ -181,6 +219,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         categoriesLoading,
         categoriesError,
         loadCategories,
+        users,
+        usersLoading,
+        usersError,
+        loadUsers,
         sellProducts,
         addSellProduct,
         updateSellProductQuantity,

@@ -12,11 +12,19 @@ import {
   FaChartBar,
 } from "react-icons/fa";
 import { SettingsGrid, SettingsCard, SettingsIcon, SettingsTitle, SettingsSubtitle } from "./styled";
+import ProductsManagement from "./products";
+import StockList from "./stock";
+import UsersList from "./users";
 
 interface SettingsOption {
   titulo: string;
   subtitulo: string;
   icon: React.ReactNode;
+}
+
+interface SettingsProps {
+  onNavigate?: (view: "main" | "products" | "stock" | "users") => void;
+  currentView?: "main" | "products" | "stock" | "users";
 }
 
 const settingsOptions: SettingsOption[] = [
@@ -72,7 +80,8 @@ const settingsOptions: SettingsOption[] = [
   },
 ];
 
-export default function Settings() {
+export default function Settings({ onNavigate, currentView: externalView }: SettingsProps) {
+  const [internalView, setInternalView] = useState<"main" | "products" | "stock" | "users">("main");
   const gridRef = useRef<HTMLDivElement>(null);
   const [cardSize, setCardSize] = useState<number | undefined>(undefined);
   const totalItems = settingsOptions.length;
@@ -83,7 +92,38 @@ export default function Settings() {
   const isLastRowIncomplete = itemsInLastRow > 0 && itemsInLastRow < itemsPerRow;
   const startIndexLastRow = fullRows * itemsPerRow;
 
+  // Usar el view externo si está disponible, sino usar el interno
+  const currentView = externalView !== undefined ? externalView : internalView;
+
+  const handleProductClick = () => {
+    const newView = "products";
+    setInternalView(newView);
+    if (onNavigate) {
+      onNavigate(newView);
+    }
+  };
+
+  const handleStockClick = () => {
+    const newView = "stock";
+    setInternalView(newView);
+    if (onNavigate) {
+      onNavigate(newView);
+    }
+  };
+
+  const handleUsersClick = () => {
+    const newView = "users";
+    setInternalView(newView);
+    if (onNavigate) {
+      onNavigate(newView);
+    }
+  };
+
   useEffect(() => {
+    // Solo calcular cardSize si estamos en la vista principal
+    if (currentView !== "main") {
+      return;
+    }
     const calculateCardSize = () => {
       if (gridRef.current) {
         const grid = gridRef.current;
@@ -119,7 +159,19 @@ export default function Settings() {
         window.visualViewport.removeEventListener("resize", calculateCardSize);
       }
     };
-  }, [totalRows]);
+  }, [totalRows, currentView]);
+
+  if (currentView === "products") {
+    return <ProductsManagement />;
+  }
+
+  if (currentView === "stock") {
+    return <StockList />;
+  }
+
+  if (currentView === "users") {
+    return <UsersList />;
+  }
 
   return (
     <SettingsGrid ref={gridRef} cardSize={cardSize}>
@@ -136,8 +188,23 @@ export default function Settings() {
           };
         }
 
+        const handleClick = () => {
+          if (option.titulo === "Productos") {
+            handleProductClick();
+          } else if (option.titulo === "Stock") {
+            handleStockClick();
+          } else if (option.titulo === "Usuarios") {
+            handleUsersClick();
+          }
+        };
+
         return (
-          <SettingsCard key={index} cardSize={cardSize} style={gridColumnStyle}>
+          <SettingsCard
+            key={index}
+            cardSize={cardSize}
+            style={gridColumnStyle}
+            onClick={handleClick}
+          >
             <SettingsIcon>{option.icon}</SettingsIcon>
             <SettingsTitle>{option.titulo}</SettingsTitle>
             <SettingsSubtitle>{option.subtitulo}</SettingsSubtitle>

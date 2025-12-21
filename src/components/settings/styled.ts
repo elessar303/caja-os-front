@@ -1,6 +1,8 @@
 import styled from "styled-components";
 
-export const SettingsGrid = styled.div<{ cardSize?: number }>`
+export const SettingsGrid = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== "cardSize",
+})<{ cardSize?: number }>`
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(4, 1fr);
@@ -16,7 +18,9 @@ export const SettingsGrid = styled.div<{ cardSize?: number }>`
   align-content: start;
 `;
 
-export const SettingsCard = styled.div<{ cardSize?: number }>`
+export const SettingsCard = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== "cardSize",
+})<{ cardSize?: number }>`
   width: 100%;
   height: ${({ cardSize }) => (cardSize ? `${cardSize}px` : "100%")};
   background: ${({ theme }) => theme.colors.bgSoft};

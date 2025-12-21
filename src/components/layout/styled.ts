@@ -37,6 +37,30 @@ export const HeaderGroup = styled.div`
   gap: 24px;
 `;
 
+export const Breadcrumb = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  color: ${({ theme }) => theme.text};
+`;
+
+interface BreadcrumbItemProps {
+  isActive?: boolean;
+}
+
+export const BreadcrumbItem = styled.span.withConfig({
+  shouldForwardProp: (prop) => prop !== "isActive",
+})<BreadcrumbItemProps>`
+  font-weight: ${({ isActive }) => (isActive ? 700 : 400)};
+  color: ${({ theme, isActive }) =>
+    isActive ? theme.text : theme.textSoft};
+`;
+
+export const BreadcrumbSeparator = styled.span`
+  color: ${({ theme }) => theme.textSoft};
+`;
+
 export const MiddleHeaderGroup = styled.div`
   display: flex;
   align-items: center;
@@ -44,16 +68,18 @@ export const MiddleHeaderGroup = styled.div`
 `;
 
 interface HeaderItemProps {
-  active?: boolean;
+  isActive?: boolean;
 }
 
-export const HeaderItem = styled.div<HeaderItemProps>`
+export const HeaderItem = styled.div.withConfig({
+  shouldForwardProp: (prop) => prop !== "isActive",
+})<HeaderItemProps>`
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: ${({ theme, active }) =>
-    active ? theme.colors.greenBorder : theme.textSoft};
+  color: ${({ theme, isActive }) =>
+    isActive ? theme.colors.greenBorder : theme.textSoft};
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -64,12 +90,12 @@ export const HeaderItem = styled.div<HeaderItemProps>`
   }
 
   &:hover {
-    color: ${({ theme, active }) =>
-      active ? theme.colors.greenBorder : theme.text};
+    color: ${({ theme, isActive }) =>
+      isActive ? theme.colors.greenBorder : theme.text};
   }
 
-  ${({ active, theme }) =>
-    active &&
+  ${({ isActive, theme }) =>
+    isActive &&
     `
     color: ${theme.colors.greenBorder};
   `}
@@ -113,13 +139,15 @@ export const ChargeButton = styled.button`
 `;
 
 interface MiddleHeaderButtonProps {
-  active?: boolean;
+  isActive?: boolean;
   isFirst?: boolean;
   isLast?: boolean;
   disabled?: boolean;
 }
 
-export const MiddleHeaderButton = styled.button<MiddleHeaderButtonProps>`
+export const MiddleHeaderButton = styled.button.withConfig({
+  shouldForwardProp: (prop) => !["isActive", "isFirst", "isLast"].includes(prop),
+})<MiddleHeaderButtonProps>`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -131,24 +159,24 @@ export const MiddleHeaderButton = styled.button<MiddleHeaderButtonProps>`
   border-top: none;
   border-bottom: none;
   border-left: 2px solid
-    ${({ theme, active }) =>
-      active ? theme.colors.greenBorder : theme.colors.border};
+    ${({ theme, isActive }) =>
+      isActive ? theme.colors.greenBorder : theme.colors.border};
   border-right: 2px solid
-    ${({ theme, active }) =>
-      active ? theme.colors.greenBorder : theme.colors.border};
+    ${({ theme, isActive }) =>
+      isActive ? theme.colors.greenBorder : theme.colors.border};
   ${({ isFirst }) => isFirst && "border-top-left-radius: 8px; border-bottom-left-radius: 8px;"}
   ${({ isLast }) => isLast && "border-top-right-radius: 8px; border-bottom-right-radius: 8px;"}
   margin-left: ${({ isFirst }) => (isFirst ? "0" : "-2px")};
-  background: ${({ theme, active, disabled }) =>
+  background: ${({ theme, isActive, disabled }) =>
     disabled
       ? theme.colors.bgSoft
-      : active
+      : isActive
       ? theme.colors.greenSoft
       : theme.colors.bgSoft};
-  color: ${({ theme, active, disabled }) =>
+  color: ${({ theme, isActive, disabled }) =>
     disabled
       ? theme.textSoft
-      : active
+      : isActive
       ? theme.colors.greenBorder
       : theme.textSoft};
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
@@ -157,26 +185,26 @@ export const MiddleHeaderButton = styled.button<MiddleHeaderButtonProps>`
   font-size: 12px;
   gap: 4px;
   position: relative;
-  z-index: ${({ active }) => (active ? 1 : 0)};
+  z-index: ${({ isActive }) => (isActive ? 1 : 0)};
 
   svg {
     font-size: 20px;
   }
 
   span {
-    font-weight: ${({ active }) => (active ? 600 : 500)};
-    font-size: ${({ active }) => (active ? "14px" : "12px")};
+    font-weight: ${({ isActive }) => (isActive ? 600 : 500)};
+    font-size: ${({ isActive }) => (isActive ? "14px" : "12px")};
   }
 
   &:hover:not(:disabled) {
-    border-left-color: ${({ theme, active }) =>
-      active ? theme.colors.greenBorder : theme.colors.borderHover};
-    border-right-color: ${({ theme, active }) =>
-      active ? theme.colors.greenBorder : theme.colors.borderHover};
-    background: ${({ theme, active }) =>
-      active ? theme.colors.greenFocus : theme.colors.bgHover};
-    color: ${({ theme, active }) =>
-      active ? theme.colors.greenBorder : theme.text};
+    border-left-color: ${({ theme, isActive }) =>
+      isActive ? theme.colors.greenBorder : theme.colors.borderHover};
+    border-right-color: ${({ theme, isActive }) =>
+      isActive ? theme.colors.greenBorder : theme.colors.borderHover};
+    background: ${({ theme, isActive }) =>
+      isActive ? theme.colors.greenFocus : theme.colors.bgHover};
+    color: ${({ theme, isActive }) =>
+      isActive ? theme.colors.greenBorder : theme.text};
     z-index: 2;
   }
 
