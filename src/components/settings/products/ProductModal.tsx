@@ -46,14 +46,19 @@ export default function ProductModal({
 }: ProductModalProps) {
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [price, setPrice] = useState("");
-  const [cost, setCost] = useState("");
-  const [currentStock, setCurrentStock] = useState("");
-  const [minStock, setMinStock] = useState("");
+  const [price, setPrice] = useState<string>("");
+  const [cost, setCost] = useState<string>("");
+  const [currentStock, setCurrentStock] = useState<string>("");
+  const [minStock, setMinStock] = useState<string>("");
   const [barcode, setBarcode] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [isWeighable, setIsWeighable] = useState(false);
   const [isEditablePrice, setIsEditablePrice] = useState(false);
+
+  // Validar si el formulario es válido (campos obligatorios completos)
+  const isFormValid = useMemo(() => {
+    return name.trim() !== "" && categoryId !== "";
+  }, [name, categoryId]);
 
   // Calcular ganancia en porcentaje
   const profitPercentage = useMemo(() => {
@@ -66,23 +71,29 @@ export default function ProductModal({
 
   // Generar código de barras aleatorio
   const generateBarcode = () => {
-    const randomBarcode = Math.random().toString(36).substring(2, 15).toUpperCase();
+    const randomBarcode = Math.random()
+      .toString(36)
+      .substring(2, 15)
+      .toUpperCase();
     setBarcode(randomBarcode);
   };
 
-  // Validar número con 2 decimales
+  // Validar número con máximo 2 decimales (para price y cost)
   const validateDecimal = (value: string): string => {
+    if (value === "") return value;
+    // Permitir números con máximo 2 decimales
     const regex = /^\d*\.?\d{0,2}$/;
-    if (value === "" || regex.test(value)) {
+    if (regex.test(value)) {
       return value;
     }
     return value.slice(0, -1);
   };
 
-  // Validar número entero
+  // Validar número entero (para stock no pesable)
   const validateInteger = (value: string): string => {
+    if (value === "") return value;
     const regex = /^\d*$/;
-    if (value === "" || regex.test(value)) {
+    if (regex.test(value)) {
       return value;
     }
     return value.slice(0, -1);
@@ -94,6 +105,20 @@ export default function ProductModal({
       return validateDecimal(value);
     } else {
       return validateInteger(value);
+    }
+  };
+
+  // Redondear a 2 decimales (para price y cost)
+  const roundToTwoDecimals = (value: number): number => {
+    return Math.round(value * 100) / 100;
+  };
+
+  // Redondear stock según si es pesable o no
+  const roundStock = (value: number, isWeighable: boolean): number => {
+    if (isWeighable) {
+      return roundToTwoDecimals(value);
+    } else {
+      return Math.round(value);
     }
   };
 
@@ -124,10 +149,10 @@ export default function ProductModal({
     if (product) {
       setName(product.name || "");
       setCategoryId(product.category_id || "");
-      setPrice(product.price || "");
-      setCost(product.cost || "");
-      setCurrentStock(product.current_stock || "");
-      setMinStock(product.min_stock || "");
+      setPrice(product.price?.toString() || "");
+      setCost(product.cost?.toString() || "");
+      setCurrentStock(product.current_stock?.toString() || "");
+      setMinStock(product.min_stock?.toString() || "");
       setBarcode(product.barcode || "");
       setImageUrl(product.image_url || "");
       setIsWeighable(product.is_weighable || false);
@@ -148,15 +173,24 @@ export default function ProductModal({
   }, [product, isOpen]);
 
   const handleSave = () => {
+    // Convertir strings a números y redondear correctamente
+    const priceNum = roundToTwoDecimals(parseFloat(price) || 0);
+    const costNum = roundToTwoDecimals(parseFloat(cost) || 0);
+    const currentStockNum = roundStock(
+      parseFloat(currentStock) || 0,
+      isWeighable
+    );
+    const minStockNum = roundStock(parseFloat(minStock) || 0, isWeighable);
+
     const productData: Partial<Product> = {
       name,
       category_id: categoryId,
-      price,
-      cost,
-      current_stock: currentStock,
-      min_stock: minStock,
-      barcode,
-      image_url: imageUrl,
+      price: priceNum,
+      cost: costNum,
+      current_stock: currentStockNum,
+      min_stock: minStockNum,
+      barcode: barcode.trim() || null,
+      image_url: imageUrl.trim() || null,
       is_weighable: isWeighable,
       is_editable_price: isEditablePrice,
     };
@@ -167,20 +201,23 @@ export default function ProductModal({
     }
 
     onSave(productData);
-    onClose();
+    // El modal se cerrará desde el componente padre después de que la operación sea exitosa
   };
 
   if (!isOpen) return null;
 
   return (
-    <ModalOverlay onClick={onClose}>
+    <ModalOverlay>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
           <div>
             <ModalTitle>
               {product ? "Editar Producto" : "Agregar Producto"}
             </ModalTitle>
-            <ModalSubtitle>Complete los datos del producto</ModalSubtitle>
+            <ModalSubtitle>
+              Complete los datos. Los campos marcados con{" "}
+              <span style={{ color: "#ef4444" }}>*</span> son obligatorios
+            </ModalSubtitle>
           </div>
           <CloseButton onClick={onClose}>
             <FaTimes />
@@ -191,7 +228,9 @@ export default function ProductModal({
           {/* Fila 1: Nombre y Categoría */}
           <FormRow>
             <FormGroup>
-              <Label>Nombre</Label>
+              <Label>
+                Nombre <span style={{ color: "#ef4444" }}>*</span>
+              </Label>
               <Input
                 type="text"
                 value={name}
@@ -200,7 +239,9 @@ export default function ProductModal({
               />
             </FormGroup>
             <FormGroup>
-              <Label>Categoría</Label>
+              <Label>
+                Categoría <span style={{ color: "#ef4444" }}>*</span>
+              </Label>
               <Select
                 value={categoryId}
                 onChange={(e) => setCategoryId(e.target.value)}
@@ -252,9 +293,7 @@ export default function ProductModal({
               <Input
                 type="text"
                 value={currentStock}
-                onChange={(e) =>
-                  setCurrentStock(validateStock(e.target.value))
-                }
+                onChange={(e) => setCurrentStock(validateStock(e.target.value))}
                 placeholder={isWeighable ? "0.00" : "0"}
               />
             </FormGroup>
@@ -301,7 +340,7 @@ export default function ProductModal({
                   placeholder="URL de la imagen"
                   style={{ flex: 1 }}
                 />
-                <FileUploadButton type="button" as="label">
+                <FileUploadButton as="label">
                   <FileInput
                     type="file"
                     accept="image/*"
@@ -353,7 +392,11 @@ export default function ProductModal({
           <CancelButton type="button" onClick={onClose}>
             Cancelar
           </CancelButton>
-          <SaveButton type="button" onClick={handleSave}>
+          <SaveButton
+            type="button"
+            onClick={handleSave}
+            disabled={!isFormValid}
+          >
             <FaSave />
             Guardar
           </SaveButton>
@@ -362,4 +405,3 @@ export default function ProductModal({
     </ModalOverlay>
   );
 }
-

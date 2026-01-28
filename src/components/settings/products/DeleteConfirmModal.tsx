@@ -17,8 +17,8 @@ interface DeleteConfirmModalProps {
   onClose: () => void;
   onConfirm: () => void;
   itemName: string;
-  itemType: "product" | "category";
-  barcode?: string;
+  itemType: "product" | "category" | "user" | "paymentMethod";
+  barcode?: string | null;
 }
 
 export default function DeleteConfirmModal({
@@ -37,11 +37,17 @@ export default function DeleteConfirmModal({
   };
 
   return (
-    <ModalOverlay onClick={onClose}>
+    <ModalOverlay>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
           <ModalTitle>
-            {itemType === "product" ? "Eliminar Producto" : "Eliminar Categoría"}
+            {itemType === "product"
+              ? "Eliminar Producto"
+              : itemType === "category"
+              ? "Eliminar Categoría"
+              : itemType === "user"
+              ? "Eliminar Usuario"
+              : "Eliminar Método de Pago"}
           </ModalTitle>
           <CloseButton onClick={onClose}>
             <FaTimes />
@@ -50,7 +56,14 @@ export default function DeleteConfirmModal({
 
         <ModalBody>
           <ConfirmMessage>
-            ¿Desea borrar {itemType === "product" ? "el producto" : "la categoría"}{" "}
+            ¿Desea borrar{" "}
+            {itemType === "product"
+              ? "el producto"
+              : itemType === "category"
+              ? "la categoría"
+              : itemType === "user"
+              ? "el usuario"
+              : "el método de pago"}{" "}
             <strong>{itemName}</strong>
             {itemType === "product" && barcode && (
               <>

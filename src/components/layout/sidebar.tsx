@@ -15,7 +15,7 @@ export default function Sidebar() {
 
   const calculateTotal = () => {
     return sellProducts.reduce((total, sp) => {
-      const price = parseFloat(sp.product.price) || 0;
+      const price = sp.product.price || 0;
       return total + price * sp.quantity;
     }, 0);
   };

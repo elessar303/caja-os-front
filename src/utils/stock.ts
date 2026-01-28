@@ -8,8 +8,8 @@ import type { Product } from "../../api/products";
  * @returns true si el producto tiene stock bajo, false en caso contrario
  */
 export const isStockLow = (product: Product): boolean => {
-  const currentStock = parseFloat(product.current_stock) || 0;
-  const minStock = parseFloat(product.min_stock) || 0;
+  const currentStock = product.current_stock || 0;
+  const minStock = product.min_stock || 0;
   const difference = currentStock - minStock;
   return difference >= 1 && difference <= 5 && currentStock > 0;
 };

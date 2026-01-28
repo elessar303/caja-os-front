@@ -3,6 +3,7 @@ import { GridContainer, Grid, LoadingMessage } from "./styled";
 import ProductCard from "./ProductCard";
 import Footer from "../layout/footer";
 import { AppContext } from "../../context/app";
+import { matchesProductSearch } from "../../utils/productSearch";
 
 interface ProductGridProps {
   searchTerm: string;
@@ -28,11 +29,8 @@ export default function ProductGrid({ searchTerm, selectedCategoryId }: ProductG
 
     // Filtrar por búsqueda si hay un término de búsqueda
     if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchLower) ||
-          product.barcode.toLowerCase().includes(searchLower)
+      filtered = filtered.filter((product) =>
+        matchesProductSearch(product, searchTerm)
       );
     }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FaTimes, FaSave } from "react-icons/fa";
 import type { User } from "../../../api/users";
 import {
@@ -84,16 +84,18 @@ export default function UserModal({
   const [username, setUsername] = useState("");
   const [role, setRole] = useState<"admin" | "cashier" | "mozo">("cashier");
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [permissions, setPermissions] = useState<UserPermissions>(defaultPermissions);
 
   useEffect(() => {
-    if (user) {
+    if (user && isOpen) {
       // Editar usuario existente
       setUsername(user.username);
       setRole(user.role);
       setFullName(user.full_name);
+      setEmail(user.email || "");
       setPassword(""); // No mostrar contraseña existente
       setIsActive(user.is_active);
 
@@ -105,11 +107,12 @@ export default function UserModal({
         console.error("Error parsing permissions:", error);
         setPermissions(defaultPermissions);
       }
-    } else {
+    } else if (isOpen) {
       // Nuevo usuario - resetear formulario
       setUsername("");
       setRole("cashier");
       setFullName("");
+      setEmail("");
       setPassword("");
       setIsActive(true);
       setPermissions(defaultPermissions);
@@ -123,42 +126,52 @@ export default function UserModal({
     }));
   };
 
+  // Validar formulario - campos obligatorios
+  const isFormValid = useMemo(() => {
+    const hasRequiredFields = username.trim().length > 0 && fullName.trim().length > 0;
+    // Contraseña solo es obligatoria para nuevos usuarios
+    const hasPassword = user ? true : password.trim().length > 0;
+    return hasRequiredFields && hasPassword;
+  }, [username, fullName, password, user]);
+
   const handleSave = () => {
-    // Validación básica
-    if (!username || !fullName || (!user && !password)) {
-      alert("Por favor, complete todos los campos obligatorios.");
+    if (!isFormValid) {
       return;
     }
 
     const userData: Partial<User> = {
-      id: user?.id || "new-user-id-" + Date.now(),
-      business_id: user?.business_id || "d3g7e4c5-0h69-6c9f-d4e7-8a0b1c2d3e4f",
-      username,
+      id: user?.id,
+      business_id: user?.business_id || "",
+      username: username.trim(),
       role,
-      full_name: fullName,
+      full_name: fullName.trim(),
+      email: email.trim(),
       is_active: isActive,
       permissions: JSON.stringify(permissions),
-      email: user?.email || "", // Mantener email existente o vacío
       auth_id: user?.auth_id || null,
-      password_hash: user?.password_hash || "", // En producción, hashear la contraseña
-      created_at: user?.created_at || new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      password_hash: user?.password_hash || "", // Se establecerá después
     };
 
-    // Si es nuevo usuario y hay contraseña, deberías hashearla aquí
-    if (!user && password) {
-      // En producción, hashear la contraseña antes de guardar
-      userData.password_hash = `$2a$10$hashed_${password}`; // Placeholder
+    // Si es nuevo usuario, la contraseña es obligatoria
+    // Si es edición y hay nueva contraseña, actualizarla
+    if (!user) {
+      // Nuevo usuario: usar la contraseña ingresada directamente
+      // NOTA: En producción, deberías hashear la contraseña antes de guardar
+      userData.password_hash = password.trim();
+    } else if (password.trim() !== "") {
+      // Edición con nueva contraseña: actualizar
+      // NOTA: En producción, deberías hashear la contraseña antes de guardar
+      userData.password_hash = password.trim();
     }
+    // Si es edición sin nueva contraseña, password_hash se mantiene del usuario existente
 
     onSave(userData);
-    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <ModalOverlay onClick={onClose}>
+    <ModalOverlay>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
           <div>
@@ -168,7 +181,9 @@ export default function UserModal({
             <ModalSubtitle>
               {user
                 ? "Modifique los datos del usuario"
-                : "Complete los datos del usuario"}
+                : "Complete los datos del usuario. Los campos marcados con "}
+              {!user && <span style={{ color: "#ef4444" }}>*</span>}
+              {!user && " son obligatorios"}
             </ModalSubtitle>
           </div>
           <CloseButton onClick={onClose} type="button">
@@ -180,7 +195,9 @@ export default function UserModal({
           {/* Primera línea: Nombre de usuario y Rol */}
           <FormRow>
             <FormGroup>
-              <Label>Nombre de Usuario</Label>
+              <Label>
+                Nombre de Usuario <span style={{ color: "#ef4444" }}>*</span>
+              </Label>
               <Input
                 type="text"
                 value={username}
@@ -189,7 +206,9 @@ export default function UserModal({
               />
             </FormGroup>
             <FormGroup>
-              <Label>Rol</Label>
+              <Label>
+                Rol <span style={{ color: "#ef4444" }}>*</span>
+              </Label>
               <Select value={role} onChange={(e) => setRole(e.target.value as "admin" | "cashier" | "mozo")}>
                 <option value="admin">Admin</option>
                 <option value="cashier">Cashier</option>
@@ -201,7 +220,9 @@ export default function UserModal({
           {/* Segunda línea: Nombre completo y Contraseña */}
           <FormRow>
             <FormGroup>
-              <Label>Nombre Completo</Label>
+              <Label>
+                Nombre Completo <span style={{ color: "#ef4444" }}>*</span>
+              </Label>
               <Input
                 type="text"
                 value={fullName}
@@ -210,7 +231,16 @@ export default function UserModal({
               />
             </FormGroup>
             <FormGroup>
-              <Label>Contraseña {user && "(dejar vacío para mantener)"}</Label>
+              <Label>
+                Contraseña{" "}
+                {user ? (
+                  <span style={{ fontSize: "12px", color: "var(--text-soft)" }}>
+                    (dejar vacío para mantener)
+                  </span>
+                ) : (
+                  <span style={{ color: "#ef4444" }}>*</span>
+                )}
+              </Label>
               <Input
                 type="password"
                 value={password}
@@ -220,8 +250,17 @@ export default function UserModal({
             </FormGroup>
           </FormRow>
 
-          {/* Tercera línea: Switch para usuario activo */}
+          {/* Tercera línea: Email y Switch para usuario activo */}
           <FormRow>
+            <FormGroup>
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="correo@ejemplo.com"
+              />
+            </FormGroup>
             <FormGroup>
               <SwitchContainer>
                 <Switch
@@ -262,7 +301,7 @@ export default function UserModal({
           <CancelButton type="button" onClick={onClose}>
             Cancelar
           </CancelButton>
-          <SaveButton type="button" onClick={handleSave}>
+          <SaveButton type="button" onClick={handleSave} disabled={!isFormValid}>
             <FaSave />
             Guardar
           </SaveButton>

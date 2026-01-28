@@ -330,9 +330,17 @@ export const SaveButton = styled.button`
   cursor: pointer;
   transition: all 0.2s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.greenBorder};
     color: white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: ${({ theme }) => theme.colors.border};
+    background: ${({ theme }) => theme.colors.bgSoft};
+    color: ${({ theme }) => theme.textSoft};
   }
 
   svg {

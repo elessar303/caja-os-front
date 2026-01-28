@@ -10,11 +10,20 @@ import {
   FaUsers,
   FaCashRegister,
   FaChartBar,
+  FaWallet,
+  FaHandHoldingUsd,
 } from "react-icons/fa";
-import { SettingsGrid, SettingsCard, SettingsIcon, SettingsTitle, SettingsSubtitle } from "./styled";
+import {
+  SettingsGrid,
+  SettingsCard,
+  SettingsIcon,
+  SettingsTitle,
+  SettingsSubtitle,
+} from "./styled";
 import ProductsManagement from "./products";
 import StockList from "./stock";
 import UsersList from "./users";
+import PaymentMethodsList from "./paymentMethods";
 
 interface SettingsOption {
   titulo: string;
@@ -23,8 +32,8 @@ interface SettingsOption {
 }
 
 interface SettingsProps {
-  onNavigate?: (view: "main" | "products" | "stock" | "users") => void;
-  currentView?: "main" | "products" | "stock" | "users";
+  onNavigate?: (view: "main" | "products" | "stock" | "users" | "paymentMethods") => void;
+  currentView?: "main" | "products" | "stock" | "users" | "paymentMethods";
 }
 
 const settingsOptions: SettingsOption[] = [
@@ -49,6 +58,11 @@ const settingsOptions: SettingsOption[] = [
     icon: <FaBoxes />,
   },
   {
+    titulo: "Gastos",
+    subtitulo: "Gestionar gastos del negocio",
+    icon: <FaHandHoldingUsd />,
+  },
+  {
     titulo: "Facturación",
     subtitulo: "Próximamente disponible",
     icon: <FaFileInvoice />,
@@ -62,6 +76,11 @@ const settingsOptions: SettingsOption[] = [
     titulo: "Productos",
     subtitulo: "Gestionar productos y categorías",
     icon: <FaBox />,
+  },
+  {
+    titulo: "Métodos de Pago",
+    subtitulo: "Configurar métodos de pago disponibles",
+    icon: <FaWallet />,
   },
   {
     titulo: "Usuarios",
@@ -80,8 +99,13 @@ const settingsOptions: SettingsOption[] = [
   },
 ];
 
-export default function Settings({ onNavigate, currentView: externalView }: SettingsProps) {
-  const [internalView, setInternalView] = useState<"main" | "products" | "stock" | "users">("main");
+export default function Settings({
+  onNavigate,
+  currentView: externalView,
+}: SettingsProps) {
+  const [internalView, setInternalView] = useState<
+    "main" | "products" | "stock" | "users" | "paymentMethods"
+  >("main");
   const gridRef = useRef<HTMLDivElement>(null);
   const [cardSize, setCardSize] = useState<number | undefined>(undefined);
   const totalItems = settingsOptions.length;
@@ -89,7 +113,8 @@ export default function Settings({ onNavigate, currentView: externalView }: Sett
   const totalRows = Math.ceil(totalItems / itemsPerRow);
   const fullRows = Math.floor(totalItems / itemsPerRow);
   const itemsInLastRow = totalItems % itemsPerRow;
-  const isLastRowIncomplete = itemsInLastRow > 0 && itemsInLastRow < itemsPerRow;
+  const isLastRowIncomplete =
+    itemsInLastRow > 0 && itemsInLastRow < itemsPerRow;
   const startIndexLastRow = fullRows * itemsPerRow;
 
   // Usar el view externo si está disponible, sino usar el interno
@@ -119,6 +144,14 @@ export default function Settings({ onNavigate, currentView: externalView }: Sett
     }
   };
 
+  const handlePaymentMethodsClick = () => {
+    const newView = "paymentMethods";
+    setInternalView(newView);
+    if (onNavigate) {
+      onNavigate(newView);
+    }
+  };
+
   useEffect(() => {
     // Solo calcular cardSize si estamos en la vista principal
     if (currentView !== "main") {
@@ -132,7 +165,9 @@ export default function Settings({ onNavigate, currentView: externalView }: Sett
         const gap = 16;
         const availableHeight = gridHeight - gridPadding;
         const totalGaps = (totalRows - 1) * gap;
-        const cardHeight = Math.floor((availableHeight - totalGaps) / totalRows);
+        const cardHeight = Math.floor(
+          (availableHeight - totalGaps) / totalRows
+        );
         setCardSize(cardHeight);
       }
     };
@@ -173,12 +208,16 @@ export default function Settings({ onNavigate, currentView: externalView }: Sett
     return <UsersList />;
   }
 
+  if (currentView === "paymentMethods") {
+    return <PaymentMethodsList />;
+  }
+
   return (
     <SettingsGrid ref={gridRef} cardSize={cardSize}>
       {settingsOptions.map((option, index) => {
         const isInLastRow = index >= startIndexLastRow;
         const isLastRowItem = isInLastRow && isLastRowIncomplete;
-        
+
         let gridColumnStyle: React.CSSProperties | undefined;
         if (isLastRowItem) {
           const positionInLastRow = index - startIndexLastRow;
@@ -195,6 +234,8 @@ export default function Settings({ onNavigate, currentView: externalView }: Sett
             handleStockClick();
           } else if (option.titulo === "Usuarios") {
             handleUsersClick();
+          } else if (option.titulo === "Métodos de Pago") {
+            handlePaymentMethodsClick();
           }
         };
 
@@ -214,4 +255,3 @@ export default function Settings({ onNavigate, currentView: externalView }: Sett
     </SettingsGrid>
   );
 }
-

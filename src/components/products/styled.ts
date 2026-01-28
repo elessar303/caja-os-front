@@ -47,13 +47,26 @@ export const Card = styled.div`
   }
 `;
 
-export const Img = styled.div`
-  width: 100%;
+export const Img = styled.img`
+  width: auto;
   height: 70px;
   min-height: 70px;
   background: ${({ theme }) => theme.colors.bgSoft};
   border-radius: 10px;
   flex-shrink: 0;
+  object-fit: cover;
+`;
+
+export const ImagePlaceholder = styled.div`
+  width: auto;
+  height: 70px;
+  min-height: 70px;
+  background: ${({ theme }) => theme.colors.bgSoft};
+  border-radius: 10px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 export const Barcode = styled.p`

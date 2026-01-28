@@ -47,10 +47,15 @@ export const HeaderActionButton = styled.button`
   transition: all 0.2s ease;
   white-space: nowrap;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.bgHover};
     border-color: ${({ theme }) => theme.colors.greenBorder};
     color: ${({ theme }) => theme.colors.greenBorder} !important;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   svg {
@@ -264,10 +269,15 @@ export const ActionButton = styled.button`
   cursor: pointer;
   transition: all 0.2s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.bgHover};
     border-color: ${({ theme }) => theme.colors.greenBorder};
     color: ${({ theme }) => theme.colors.greenBorder} !important;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   svg {
@@ -283,7 +293,7 @@ export const ActionButton = styled.button`
 export const DeleteButton = styled(ActionButton)`
   color: ${({ theme }) => theme.colors.danger} !important;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.danger};
     border-color: ${({ theme }) => theme.colors.danger};
     color: white !important;
@@ -294,9 +304,24 @@ export const DeleteButton = styled(ActionButton)`
   }
 `;
 
-export const ProductImage = styled.div`
-  width: 100%;
-  height: 100%;
+export const ProductImage = styled.img`
+  width: auto;
+  height: 80px;
+  aspect-ratio: 1;
+  background: ${({ theme }) => theme.colors.bgHover};
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  min-height: 80px;
+  object-fit: cover;
+`;
+
+export const ProductImagePlaceholder = styled.div`
+  width: 80px;
+  height: 80px;
   aspect-ratio: 1;
   background: ${({ theme }) => theme.colors.bgHover};
   border-radius: 8px;

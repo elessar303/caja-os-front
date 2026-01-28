@@ -1,7 +1,10 @@
 import { useState, useMemo, useContext } from "react";
 import { AppContext } from "../../../context/app";
-import type { Product } from "../../../api/products";
 import { isStockLow } from "../../../utils/stock";
+import {
+  matchesProductSearch,
+  getProductImageUrl,
+} from "../../../utils/productSearch";
 import {
   FiltersContainer,
   SearchInput,
@@ -20,7 +23,6 @@ import {
   ProductName,
   ProductBarcode,
   StockValue,
-  StockPill,
   StockPillNormal,
   StockPillLow,
 } from "./StockListStyled";
@@ -40,7 +42,10 @@ export default function StockList() {
 
   // Filtrar productos con stock > 0
   const productsWithStock = useMemo(() => {
-    return products.filter((product) => parseFloat(product.current_stock) > 0);
+    return products.filter((product) => {
+      const stock = product.current_stock || 0;
+      return stock > 0;
+    });
   }, [products]);
 
   const filteredProducts = useMemo(() => {
@@ -55,11 +60,8 @@ export default function StockList() {
 
     // Filtrar por búsqueda
     if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase().trim();
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(searchLower) ||
-          product.barcode.toLowerCase().includes(searchLower)
+      filtered = filtered.filter((product) =>
+        matchesProductSearch(product, searchTerm)
       );
     }
 
@@ -71,8 +73,8 @@ export default function StockList() {
         if (sortBy === "name") {
           comparison = a.name.localeCompare(b.name);
         } else if (sortBy === "stock") {
-          const stockA = parseFloat(a.current_stock) || 0;
-          const stockB = parseFloat(b.current_stock) || 0;
+          const stockA = a.current_stock || 0;
+          const stockB = b.current_stock || 0;
           comparison = stockA - stockB;
         }
 
@@ -97,8 +99,8 @@ export default function StockList() {
   };
 
   // Formatear stock según is_weighable
-  const formatStock = (stock: string, isWeighable: boolean): string => {
-    const value = parseFloat(stock) || 0;
+  const formatStock = (stock: number, isWeighable: boolean): string => {
+    const value = stock || 0;
     return isWeighable ? value.toFixed(2) : Math.round(value).toString();
   };
 
@@ -201,17 +203,28 @@ export default function StockList() {
               product.is_weighable
             );
 
+            const imageUrl = getProductImageUrl(product.image_url);
+
             return (
               <TableRow key={product.id}>
                 <ImageCell>
-                  <ProductImage />
+                  {imageUrl ? (
+                    <ProductImage
+                      as="img"
+                      src={imageUrl}
+                      alt={product.name}
+                      style={{ objectFit: "cover" }}
+                    />
+                  ) : (
+                    <ProductImage />
+                  )}
                 </ImageCell>
                 <TableCellFlex
                   style={{ flex: 2, justifyContent: "flex-start" }}
                 >
                   <ProductInfo>
                     <ProductName>{product.name}</ProductName>
-                    <ProductBarcode>{product.barcode}</ProductBarcode>
+                    <ProductBarcode>{product.barcode || "-"}</ProductBarcode>
                   </ProductInfo>
                 </TableCellFlex>
                 <TableCell style={{ flex: 1 }}>

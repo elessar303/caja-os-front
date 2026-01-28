@@ -36,7 +36,7 @@ export default function SellProductItem({ sellProduct }: SellProductItemProps) {
   const [isEditingNote, setIsEditingNote] = useState(false);
   const [noteValue, setNoteValue] = useState(note || "");
 
-  const price = parseFloat(product.price) || 0;
+  const price = product.price || 0;
   const total = price * quantity;
 
   // Dividir el nombre del producto en partes (ej: "1 DOC + Gaseosa 1.5L")

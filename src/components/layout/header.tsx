@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useState, useMemo } from "react";
 import {
   FaSync,
   FaSun,
@@ -7,11 +7,9 @@ import {
   FaTag,
   FaTable,
   FaShoppingCart,
-  FaMoneyBillWave,
-  FaExchangeAlt,
-  FaQrcode,
   FaCashRegister,
   FaArrowLeft,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import {
   HeaderContainer,
@@ -25,12 +23,13 @@ import {
 } from "./styled";
 import { ThemeContext } from "../../context/theme";
 import { AppContext } from "../../context/app";
+import { getPaymentMethodIcon } from "../../components/settings/paymentMethods/utils/iconMapper";
 
 interface HeaderProps {
   isSettingsOpen: boolean;
   onSettingsToggle: () => void;
   onBackToMain: () => void;
-  settingsView?: "main" | "products" | "stock" | "users";
+  settingsView?: "main" | "products" | "stock" | "users" | "paymentMethods";
 }
 
 export default function Header({
@@ -40,10 +39,24 @@ export default function Header({
   settingsView = "main",
 }: HeaderProps) {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
-  const { sellProducts } = useContext(AppContext);
+  const { sellProducts, logout, paymentMethods } = useContext(AppContext);
   const [activeButton, setActiveButton] = useState<string | null>(null);
-  
+
   const canCharge = sellProducts.length > 0;
+
+  // Obtener métodos de pago activos ordenados por display_order
+  const activePaymentMethods = useMemo(() => {
+    return paymentMethods
+      .filter((pm) => pm.is_active)
+      .sort((a, b) => a.display_order - b.display_order);
+  }, [paymentMethods]);
+
+  const handleLogout = () => {
+    const confirmed = window.confirm("¿Está seguro que desea cerrar sesión?");
+    if (confirmed) {
+      logout();
+    }
+  };
 
   return (
     <HeaderContainer>
@@ -90,6 +103,12 @@ export default function Header({
                 <BreadcrumbItem isActive>Usuarios</BreadcrumbItem>
               </>
             )}
+            {settingsView === "paymentMethods" && (
+              <>
+                <BreadcrumbSeparator> / </BreadcrumbSeparator>
+                <BreadcrumbItem isActive>Métodos de Pago</BreadcrumbItem>
+              </>
+            )}
           </Breadcrumb>
         </HeaderGroup>
       )}
@@ -131,46 +150,37 @@ export default function Header({
             <span>COBRAR</span>
           </MiddleHeaderButton>
 
-          <MiddleHeaderButton
-            isActive={activeButton === "efectivo"}
-            onClick={() =>
-              setActiveButton(activeButton === "efectivo" ? null : "efectivo")
-            }
-          >
-            <FaMoneyBillWave />
-            <span>Efectivo</span>
-          </MiddleHeaderButton>
-
-          <MiddleHeaderButton
-            isActive={activeButton === "transferencia"}
-            onClick={() =>
-              setActiveButton(
-                activeButton === "transferencia" ? null : "transferencia"
-              )
-            }
-          >
-            <FaExchangeAlt />
-            <span>Transferencia</span>
-          </MiddleHeaderButton>
-
-          <MiddleHeaderButton
-            isActive={activeButton === "qr"}
-            isLast
-            onClick={() => setActiveButton(activeButton === "qr" ? null : "qr")}
-          >
-            <FaQrcode />
-            <span>Qr - Tarjeta</span>
-          </MiddleHeaderButton>
+          {activePaymentMethods.map((paymentMethod, index) => (
+            <MiddleHeaderButton
+              key={paymentMethod.id}
+              isActive={activeButton === `payment-${paymentMethod.id}`}
+              isLast={index === activePaymentMethods.length - 1}
+              onClick={() =>
+                setActiveButton(
+                  activeButton === `payment-${paymentMethod.id}`
+                    ? null
+                    : `payment-${paymentMethod.id}`
+                )
+              }
+              $paymentColor={paymentMethod.color}
+            >
+              {getPaymentMethodIcon(paymentMethod.icon)}
+              <span>{paymentMethod.name}</span>
+            </MiddleHeaderButton>
+          ))}
         </MiddleHeaderGroup>
       )}
 
-      {/* DERECHA: Cambio de tema, Menú/Configuración */}
+      {/* DERECHA: Cambio de tema, Menú/Configuración, Logout */}
       <HeaderGroup>
         <HeaderItem onClick={toggleTheme}>
           {darkMode ? <FaSun /> : <FaMoon />}
         </HeaderItem>
         <HeaderItem isActive={isSettingsOpen} onClick={onSettingsToggle}>
           <FaBars />
+        </HeaderItem>
+        <HeaderItem onClick={handleLogout}>
+          <FaSignOutAlt color="#ef4444" />
         </HeaderItem>
       </HeaderGroup>
     </HeaderContainer>

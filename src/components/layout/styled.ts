@@ -143,10 +143,11 @@ interface MiddleHeaderButtonProps {
   isFirst?: boolean;
   isLast?: boolean;
   disabled?: boolean;
+  $paymentColor?: string;
 }
 
 export const MiddleHeaderButton = styled.button.withConfig({
-  shouldForwardProp: (prop) => !["isActive", "isFirst", "isLast"].includes(prop),
+  shouldForwardProp: (prop) => !["isActive", "isFirst", "isLast", "$paymentColor"].includes(prop),
 })<MiddleHeaderButtonProps>`
   display: flex;
   flex-direction: column;
@@ -173,12 +174,12 @@ export const MiddleHeaderButton = styled.button.withConfig({
       : isActive
       ? theme.colors.greenSoft
       : theme.colors.bgSoft};
-  color: ${({ theme, isActive, disabled }) =>
+  color: ${({ theme, isActive, disabled, $paymentColor }) =>
     disabled
       ? theme.textSoft
       : isActive
       ? theme.colors.greenBorder
-      : theme.textSoft};
+      : $paymentColor || theme.textSoft};
   cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
   opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
   transition: all 0.2s ease;
@@ -189,6 +190,8 @@ export const MiddleHeaderButton = styled.button.withConfig({
 
   svg {
     font-size: 20px;
+    color: ${({ theme, isActive, $paymentColor }) =>
+      isActive ? theme.colors.greenBorder : $paymentColor || theme.textSoft};
   }
 
   span {

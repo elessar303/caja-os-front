@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { FaTimes, FaSave } from "react-icons/fa";
 import type { Category } from "../../../api/categories";
 import {
@@ -33,19 +33,28 @@ export default function CategoryModal({
 }: CategoryModalProps) {
   const [name, setName] = useState("");
 
+  // Validar formulario - el nombre es obligatorio
+  const isFormValid = useMemo(() => {
+    return name.trim().length > 0;
+  }, [name]);
+
   // Cargar datos de la categoría si está en modo edición
   useEffect(() => {
-    if (category) {
+    if (category && isOpen) {
       setName(category.name || "");
-    } else {
+    } else if (isOpen) {
       // Resetear formulario para nueva categoría
       setName("");
     }
   }, [category, isOpen]);
 
   const handleSave = () => {
+    if (!isFormValid) {
+      return;
+    }
+
     const categoryData: Partial<Category> = {
-      name,
+      name: name.trim(),
     };
 
     if (category) {
@@ -54,20 +63,22 @@ export default function CategoryModal({
     }
 
     onSave(categoryData);
-    onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <ModalOverlay onClick={onClose}>
+    <ModalOverlay>
       <ModalContainer onClick={(e) => e.stopPropagation()}>
         <ModalHeader>
           <div>
             <ModalTitle>
               {category ? "Editar Categoría" : "Agregar Categoría"}
             </ModalTitle>
-            <ModalSubtitle>Complete los datos de la categoría</ModalSubtitle>
+            <ModalSubtitle>
+              Complete los datos. Los campos marcados con{" "}
+              <span style={{ color: "#ef4444" }}>*</span> son obligatorios
+            </ModalSubtitle>
           </div>
           <CloseButton onClick={onClose}>
             <FaTimes />
@@ -77,7 +88,10 @@ export default function CategoryModal({
         <ModalBody>
           <FormRow>
             <FormGroup style={{ flex: 1 }}>
-              <Label>Nombre de la Categoría</Label>
+              <Label>
+                Nombre de la Categoría{" "}
+                <span style={{ color: "#ef4444" }}>*</span>
+              </Label>
               <Input
                 type="text"
                 value={name}
@@ -93,7 +107,7 @@ export default function CategoryModal({
           <CancelButton type="button" onClick={onClose}>
             Cancelar
           </CancelButton>
-          <SaveButton type="button" onClick={handleSave}>
+          <SaveButton type="button" onClick={handleSave} disabled={!isFormValid}>
             <FaSave />
             Guardar
           </SaveButton>
@@ -102,4 +116,3 @@ export default function CategoryModal({
     </ModalOverlay>
   );
 }
-

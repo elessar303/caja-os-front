@@ -282,9 +282,17 @@ export const SaveButton = styled.button`
   height: 40px;
   box-sizing: border-box;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.greenBorder};
     color: white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: ${({ theme }) => theme.colors.border};
+    background: ${({ theme }) => theme.colors.bgSoft};
+    color: ${({ theme }) => theme.textSoft};
   }
 
   svg {
@@ -295,5 +303,6 @@ export const SaveButton = styled.button`
     color: inherit !important;
   }
 `;
+
 
 

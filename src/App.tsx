@@ -1,20 +1,37 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { GlobalStyles } from "./styles/globalStyles";
 
 import Header from "./components/layout/header";
 import Sidebar from "./components/layout/sidebar";
 import MainContent from "./components/layout/main";
 import Settings from "./components/settings";
+import Login from "./components/login";
 
 import SearchBar from "./components/search/";
 import CategoryTabs from "./components/categories";
 import ProductGrid from "./components/products";
+import { AppContext } from "./context/app";
 
 export default function App() {
+  const { isAuthenticated } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingsView, setSettingsView] = useState<"main" | "products" | "stock" | "users">("main");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const [settingsView, setSettingsView] = useState<
+    "main" | "products" | "stock" | "users" | "paymentMethods"
+  >("main");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null
+  );
+
+  // Si no está autenticado, mostrar login
+  if (!isAuthenticated) {
+    return (
+      <>
+        <GlobalStyles />
+        <Login />
+      </>
+    );
+  }
 
   const handleSettingsToggle = () => {
     setIsSettingsOpen(true);
@@ -22,7 +39,12 @@ export default function App() {
   };
 
   const handleBackToMain = () => {
-    if (settingsView === "products" || settingsView === "stock" || settingsView === "users") {
+    if (
+      settingsView === "products" ||
+      settingsView === "stock" ||
+      settingsView === "users" ||
+      settingsView === "paymentMethods"
+    ) {
       setSettingsView("main");
       setIsSettingsOpen(true); // Mantener settings abierto pero volver a la vista principal
     } else {
@@ -31,7 +53,9 @@ export default function App() {
     }
   };
 
-  const handleSettingsNavigation = (view: "main" | "products" | "stock" | "users") => {
+  const handleSettingsNavigation = (
+    view: "main" | "products" | "stock" | "users" | "paymentMethods"
+  ) => {
     setSettingsView(view);
   };
 
@@ -77,15 +101,18 @@ export default function App() {
 
           <MainContent>
             {isSettingsOpen || settingsView !== "main" ? (
-              <Settings 
-                onNavigate={handleSettingsNavigation} 
+              <Settings
+                onNavigate={handleSettingsNavigation}
                 currentView={settingsView}
               />
             ) : (
               <>
                 <SearchBar onSearchChange={setSearchTerm} />
                 <CategoryTabs onCategoryChange={handleCategoryChange} />
-                <ProductGrid searchTerm={searchTerm} selectedCategoryId={selectedCategoryId} />
+                <ProductGrid
+                  searchTerm={searchTerm}
+                  selectedCategoryId={selectedCategoryId}
+                />
               </>
             )}
           </MainContent>
