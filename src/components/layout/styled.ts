@@ -280,17 +280,20 @@ export const TotalRow = styled.div`
   color: ${({ theme }) => theme.text};
 `;
 
-export const Cancel = styled.button`
+export const Cancel = styled.button<{ disabled?: boolean }>`
   width: 100%;
-  background: ${({ theme }) => theme.colors.danger};
+  background: ${({ theme, disabled }) =>
+    disabled ? theme.colors.bgSoft : theme.colors.danger};
   padding: 12px;
   border-radius: 8px;
   margin-top: 12px;
-  color: white;
+  color: ${({ disabled }) => (disabled ? "#999" : "white")};
   border: none;
-  cursor: pointer;
+  cursor: ${({ disabled }) => (disabled ? "not-allowed" : "pointer")};
+  opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
+  transition: all 0.2s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: ${({ theme }) => theme.colors.dangerHover};
   }
 `;

@@ -10,6 +10,7 @@ import {
   FaCashRegister,
   FaArrowLeft,
   FaSignOutAlt,
+  FaHome,
 } from "react-icons/fa";
 import {
   HeaderContainer,
@@ -29,6 +30,8 @@ interface HeaderProps {
   isSettingsOpen: boolean;
   onSettingsToggle: () => void;
   onBackToMain: () => void;
+  onHomeClick: () => void;
+  onPaymentMethodClick?: (paymentMethodCode: string, paymentMethodName: string) => void;
   settingsView?: "main" | "products" | "stock" | "users" | "paymentMethods";
 }
 
@@ -36,6 +39,8 @@ export default function Header({
   isSettingsOpen,
   onSettingsToggle,
   onBackToMain,
+  onHomeClick,
+  onPaymentMethodClick,
   settingsView = "main",
 }: HeaderProps) {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
@@ -80,6 +85,9 @@ export default function Header({
         <HeaderGroup>
           <HeaderItem onClick={onBackToMain}>
             <FaArrowLeft />
+          </HeaderItem>
+          <HeaderItem onClick={onHomeClick}>
+            <FaHome color="#22c55e" />
           </HeaderItem>
           <Breadcrumb>
             <BreadcrumbItem isActive={settingsView === "main"}>
@@ -155,13 +163,12 @@ export default function Header({
               key={paymentMethod.id}
               isActive={activeButton === `payment-${paymentMethod.id}`}
               isLast={index === activePaymentMethods.length - 1}
-              onClick={() =>
-                setActiveButton(
-                  activeButton === `payment-${paymentMethod.id}`
-                    ? null
-                    : `payment-${paymentMethod.id}`
-                )
-              }
+              disabled={!canCharge}
+              onClick={() => {
+                if (canCharge && onPaymentMethodClick) {
+                  onPaymentMethodClick(paymentMethod.code, paymentMethod.name);
+                }
+              }}
               $paymentColor={paymentMethod.color}
             >
               {getPaymentMethodIcon(paymentMethod.icon)}

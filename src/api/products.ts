@@ -141,6 +141,62 @@ export const deleteProduct = async (
  * @param increaseValue - Valor del aumento (monto fijo o porcentaje)
  * @returns Promise con el número de productos actualizados
  */
+/**
+ * Actualiza el stock de múltiples productos (resta la cantidad vendida)
+ * @param stockUpdates - Array de objetos con productId y quantity a restar
+ * @param businessId - ID del business
+ * @returns Promise<void>
+ */
+export const updateProductsStock = async (
+  stockUpdates: { productId: string; quantity: number }[],
+  businessId: string
+): Promise<void> => {
+  try {
+    const supabase = supabaseClient();
+
+    // Actualizar cada producto
+    const updatePromises = stockUpdates.map(async ({ productId, quantity }) => {
+      // Obtener el stock actual
+      const { data: product, error: fetchError } = await supabase
+        .from("products")
+        .select("current_stock")
+        .eq("id", productId)
+        .eq("business_id", businessId)
+        .single();
+
+      if (fetchError) {
+        throw new Error(
+          `Error al obtener stock del producto: ${fetchError.message}`
+        );
+      }
+
+      const currentStock = product?.current_stock || 0;
+      const newStock = Math.max(0, currentStock - quantity);
+
+      // Actualizar el stock
+      const { error: updateError } = await supabase
+        .from("products")
+        .update({
+          current_stock: newStock,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", productId)
+        .eq("business_id", businessId);
+
+      if (updateError) {
+        throw new Error(
+          `Error al actualizar stock del producto: ${updateError.message}`
+        );
+      }
+    });
+
+    await Promise.all(updatePromises);
+  } catch (error) {
+    console.error("Error updating products stock:", error);
+    throw error;
+  }
+};
+
 export const bulkUpdateProductPrices = async (
   categoryId: string,
   businessId: string,

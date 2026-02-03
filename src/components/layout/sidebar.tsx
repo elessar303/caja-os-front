@@ -21,10 +21,17 @@ export default function Sidebar() {
   };
 
   const total = calculateTotal();
+  const hasProducts = sellProducts.length > 0;
+
+  const handleCancelOrder = () => {
+    if (hasProducts) {
+      clearSellProducts();
+    }
+  };
 
   return (
     <SidebarWrapper>
-      {sellProducts.length === 0 ? (
+      {!hasProducts ? (
         <Empty>No hay artículos</Empty>
       ) : (
         <SellProductsList>
@@ -39,7 +46,9 @@ export default function Sidebar() {
           <span>Total</span>
           <span>{total.toFixed(2)}</span>
         </TotalRow>
-        <Cancel onClick={clearSellProducts}>Anular orden</Cancel>
+        <Cancel onClick={handleCancelOrder} disabled={!hasProducts}>
+          Anular orden
+        </Cancel>
       </Bottom>
     </SidebarWrapper>
   );

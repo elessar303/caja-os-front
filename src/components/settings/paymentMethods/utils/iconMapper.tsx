@@ -17,7 +17,6 @@ import {
  * Mapea el nombre del icono desde la BD a un componente de React Icon
  */
 export const getPaymentMethodIcon = (iconName: string): React.ReactNode => {
-  console.log(iconName);
   const iconMap: Record<string, React.ReactNode> = {
     DollarSign: <FaDollarSign />,
     CreditCard: <FaCreditCard />,
