@@ -4,7 +4,7 @@ import { FaTimes, FaCheck } from "react-icons/fa";
 import { ThemeContext } from "../../context/theme";
 import type { PaymentMethod } from "../../api/paymentMethods";
 import type { PaymentDetails } from "../../api/sales";
-import { getPaymentMethodIcon } from "../settings/paymentMethods/utils/iconMapper";
+import { getPaymentMethodIcon } from "../../utils/iconMapper";
 import {
   ModalOverlay,
   ModalContainer,

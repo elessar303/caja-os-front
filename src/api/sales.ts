@@ -68,6 +68,40 @@ export interface CreateSaleData {
 }
 
 /**
+ * Construye los items de la venta a partir de los productos a vender.
+ * Centralizado para evitar duplicación entre cobro directo y modal de cobro.
+ */
+export function buildSaleItems(
+  sellProducts: Array<{
+    product: { id: string; name: string; price: number };
+    quantity: number;
+    note?: string;
+  }>
+): SaleItem[] {
+  return sellProducts.map((sp) => ({
+    product_id: sp.product.id,
+    product_name: sp.product.name,
+    quantity: sp.quantity,
+    unit_price: sp.product.price,
+    total: sp.product.price * sp.quantity,
+    notes: sp.note,
+  }));
+}
+
+/** Valores por defecto para crear una venta desde mostrador/desktop */
+export const DEFAULT_SALE_META = {
+  table_id: null as string | null,
+  status: "completed" as const,
+  order_type: "counter" as const,
+  customer_name: null as string | null,
+  customer_address: null as string | null,
+  customer_phone: null as string | null,
+  is_locked: false,
+  kitchen_printed: false,
+  created_from: "desktop" as const,
+};
+
+/**
  * Crea una nueva venta en Supabase
  * @param saleData - Datos de la venta a crear
  * @returns Promise con la venta creada

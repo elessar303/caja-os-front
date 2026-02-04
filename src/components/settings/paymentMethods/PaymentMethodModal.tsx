@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { FaTimes, FaSave } from "react-icons/fa";
 import type { PaymentMethod } from "../../../api/paymentMethods";
-import { getPaymentMethodIcon } from "./utils/iconMapper";
+import { getPaymentMethodIcon } from "../../../utils/iconMapper";
 import {
   ModalOverlay,
   ModalContainer,
@@ -121,7 +121,9 @@ export default function PaymentMethodModal({
         <ModalHeader>
           <div>
             <ModalTitle>
-              {paymentMethod ? "Editar Método de Pago" : "Agregar Método de Pago"}
+              {paymentMethod
+                ? "Editar Método de Pago"
+                : "Agregar Método de Pago"}
             </ModalTitle>
             <ModalSubtitle>
               Complete los datos. Los campos marcados con{" "}
@@ -211,7 +213,11 @@ export default function PaymentMethodModal({
           <CancelButton type="button" onClick={onClose}>
             Cancelar
           </CancelButton>
-          <SaveButton type="button" onClick={handleSave} disabled={!isFormValid}>
+          <SaveButton
+            type="button"
+            onClick={handleSave}
+            disabled={!isFormValid}
+          >
             <FaSave />
             Guardar
           </SaveButton>

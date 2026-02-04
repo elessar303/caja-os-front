@@ -14,7 +14,8 @@ import {
 } from "react-icons/fa";
 
 /**
- * Mapea el nombre del icono desde la BD a un componente de React Icon
+ * Mapea el nombre del icono desde la BD a un componente de React Icon.
+ * Ubicación compartida para header, CheckoutModal y configuración de métodos de pago.
  */
 export const getPaymentMethodIcon = (iconName: string): React.ReactNode => {
   const iconMap: Record<string, React.ReactNode> = {

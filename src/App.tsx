@@ -16,13 +16,7 @@ import SaleSuccessModal from "./components/sales/SaleSuccessModal";
 import CheckoutModal from "./components/sales/CheckoutModal";
 import type { PaymentDetails } from "./api/sales";
 import Alert from "./components/common/alert";
-import { createSale } from "./api/sales";
-import type { SaleItem } from "./api/sales";
-import {
-  getNextOrderNumber,
-  incrementOrderSequence,
-} from "./api/orderSequences";
-import { updateProductsStock } from "./api/products";
+import { processSale, getSaleErrorMessage } from "./services/processSale";
 
 export default function App() {
   const {
@@ -121,7 +115,7 @@ export default function App() {
     setIsConfirmModalOpen(true);
   };
 
-  // Procesar la venta
+  // Procesar la venta (cobro directo desde header: 1 método)
   const handleConfirmSale = async () => {
     if (!selectedPaymentMethod || !currentUser || !currentBusiness) {
       setSnackbarMessage("Error: Datos de sesión incompletos");
@@ -134,73 +128,24 @@ export default function App() {
     setIsConfirmModalOpen(false);
 
     try {
-      // 1. Obtener el siguiente número de orden
-      const orderNumber = await getNextOrderNumber(currentBusiness.id);
-
-      // 2. Construir los items de la venta
-      const saleItems: SaleItem[] = sellProducts.map((sp) => ({
-        product_id: sp.product.id,
-        product_name: sp.product.name,
-        quantity: sp.quantity,
-        unit_price: sp.product.price,
-        total: sp.product.price * sp.quantity,
-        notes: sp.note,
-      }));
-
-      // 3. Calcular totales
-      const subtotal = calculateSaleTotal();
-      const discount = 0;
-      const total = subtotal - discount;
-
-      // 4. Crear la venta en la base de datos (cobro directo desde header: 1 método, split false)
-      await createSale({
-        business_id: currentBusiness.id,
-        user_id: currentUser.id,
-        table_id: null,
-        subtotal,
-        discount,
-        total,
-        payment_method: selectedPaymentMethod.code,
-        status: "completed",
-        items: saleItems,
-        order_type: "counter",
-        customer_name: null,
-        customer_address: null,
-        customer_phone: null,
-        is_locked: false,
-        kitchen_printed: false,
-        created_from: "desktop",
-        order_number: orderNumber,
-        payment_details: {
-          split: false,
-          methods: [{ code: selectedPaymentMethod.code, amount: total }],
-        },
+      const total = calculateSaleTotal();
+      const paymentDetails: PaymentDetails = {
+        split: false,
+        methods: [{ code: selectedPaymentMethod.code, amount: total }],
+      };
+      const result = await processSale({
+        businessId: currentBusiness.id,
+        userId: currentUser.id,
+        sellProducts,
+        paymentDetails,
       });
-
-      // 5. Incrementar el correlativo de orden
-      await incrementOrderSequence(currentBusiness.id);
-
-      // 6. Restar del stock
-      const stockUpdates = sellProducts.map((sp) => ({
-        productId: sp.product.id,
-        quantity: sp.quantity,
-      }));
-      await updateProductsStock(stockUpdates, currentBusiness.id);
-
-      // 7. Limpiar la orden y mostrar modal de éxito
       clearSellProducts();
-      setCompletedSale({ orderNumber, total });
+      setCompletedSale(result);
       setIsSuccessModalOpen(true);
-
-      // 8. Recargar productos para reflejar cambios en stock
       await loadProducts();
     } catch (error) {
       console.error("Error al procesar venta:", error);
-      setSnackbarMessage(
-        error instanceof Error
-          ? error.message
-          : "Error al procesar la venta. Intente nuevamente."
-      );
+      setSnackbarMessage(getSaleErrorMessage(error));
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     } finally {
@@ -239,59 +184,19 @@ export default function App() {
     setIsCheckoutModalOpen(false);
 
     try {
-      const orderNumber = await getNextOrderNumber(currentBusiness.id);
-      const saleItems: SaleItem[] = sellProducts.map((sp) => ({
-        product_id: sp.product.id,
-        product_name: sp.product.name,
-        quantity: sp.quantity,
-        unit_price: sp.product.price,
-        total: sp.product.price * sp.quantity,
-        notes: sp.note,
-      }));
-      const subtotal = calculateSaleTotal();
-      const discount = 0;
-      const total = subtotal - discount;
-      const paymentMethodCode = paymentDetails.methods[0]?.code ?? "cash";
-
-      await createSale({
-        business_id: currentBusiness.id,
-        user_id: currentUser.id,
-        table_id: null,
-        subtotal,
-        discount,
-        total,
-        payment_method: paymentMethodCode,
-        status: "completed",
-        items: saleItems,
-        order_type: "counter",
-        customer_name: null,
-        customer_address: null,
-        customer_phone: null,
-        is_locked: false,
-        kitchen_printed: false,
-        created_from: "desktop",
-        order_number: orderNumber,
-        payment_details: paymentDetails,
+      const result = await processSale({
+        businessId: currentBusiness.id,
+        userId: currentUser.id,
+        sellProducts,
+        paymentDetails,
       });
-
-      await incrementOrderSequence(currentBusiness.id);
-      const stockUpdates = sellProducts.map((sp) => ({
-        productId: sp.product.id,
-        quantity: sp.quantity,
-      }));
-      await updateProductsStock(stockUpdates, currentBusiness.id);
-
       clearSellProducts();
-      setCompletedSale({ orderNumber, total });
+      setCompletedSale(result);
       setIsSuccessModalOpen(true);
       await loadProducts();
     } catch (error) {
       console.error("Error al procesar venta:", error);
-      setSnackbarMessage(
-        error instanceof Error
-          ? error.message
-          : "Error al procesar la venta. Intente nuevamente."
-      );
+      setSnackbarMessage(getSaleErrorMessage(error));
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
     } finally {

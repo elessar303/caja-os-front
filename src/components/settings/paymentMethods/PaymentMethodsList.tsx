@@ -11,7 +11,7 @@ import {
 import DeleteConfirmModal from "../products/DeleteConfirmModal";
 import Alert from "../../common/alert";
 import PaymentMethodModal from "./PaymentMethodModal";
-import { getPaymentMethodIcon } from "./utils/iconMapper";
+import { getPaymentMethodIcon } from "../../../utils/iconMapper";
 import {
   PaymentMethodsContainer,
   HeaderSection,
@@ -35,7 +35,11 @@ import {
 } from "./PaymentMethodsListStyled";
 
 export default function PaymentMethodsList() {
-  const { currentUser, paymentMethods: contextPaymentMethods, loadPaymentMethods: loadContextPaymentMethods } = useContext(AppContext);
+  const {
+    currentUser,
+    paymentMethods: contextPaymentMethods,
+    loadPaymentMethods: loadContextPaymentMethods,
+  } = useContext(AppContext);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -46,9 +50,9 @@ export default function PaymentMethodsList() {
     useState<PaymentMethod | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState("");
-  const [snackbarSeverity, setSnackbarSeverity] = useState<
-    "success" | "error"
-  >("success");
+  const [snackbarSeverity, setSnackbarSeverity] = useState<"success" | "error">(
+    "success"
+  );
   const [draggedItem, setDraggedItem] = useState<PaymentMethod | null>(null);
   const [draggedOverIndex, setDraggedOverIndex] = useState<number | null>(null);
 
@@ -104,7 +108,9 @@ export default function PaymentMethodsList() {
       await loadLocalPaymentMethods();
       await loadContextPaymentMethods();
       setSnackbarMessage(
-        `Método de pago ${!paymentMethod.is_active ? "activado" : "desactivado"} exitosamente`
+        `Método de pago ${
+          !paymentMethod.is_active ? "activado" : "desactivado"
+        } exitosamente`
       );
       setSnackbarSeverity("success");
       setSnackbarOpen(true);
@@ -122,9 +128,7 @@ export default function PaymentMethodsList() {
 
   const handleDeletePaymentMethod = (paymentMethod: PaymentMethod) => {
     if (paymentMethod.is_system) {
-      setSnackbarMessage(
-        "No se puede eliminar un método de pago del sistema"
-      );
+      setSnackbarMessage("No se puede eliminar un método de pago del sistema");
       setSnackbarSeverity("error");
       setSnackbarOpen(true);
       return;
@@ -304,7 +308,10 @@ export default function PaymentMethodsList() {
     setSnackbarOpen(false);
   };
 
-  const handleDragStart = (e: React.DragEvent, paymentMethod: PaymentMethod) => {
+  const handleDragStart = (
+    e: React.DragEvent,
+    paymentMethod: PaymentMethod
+  ) => {
     setDraggedItem(paymentMethod);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/html", paymentMethod.id);
@@ -412,7 +419,9 @@ export default function PaymentMethodsList() {
         </TitleSection>
         <ActionsContainer>
           <HeaderActionButton type="button" onClick={handleAddPaymentMethod}>
-            <FaPlus style={{ display: "block", width: "14px", height: "14px" }} />
+            <FaPlus
+              style={{ display: "block", width: "14px", height: "14px" }}
+            />
             Agregar
           </HeaderActionButton>
         </ActionsContainer>
@@ -459,7 +468,9 @@ export default function PaymentMethodsList() {
                   )}
                 </PaymentMethodCode>
               </PaymentMethodInfo>
-              <StatusPill className={paymentMethod.is_active ? "active" : "inactive"}>
+              <StatusPill
+                className={paymentMethod.is_active ? "active" : "inactive"}
+              >
                 {paymentMethod.is_active ? "Activo" : "Inactivo"}
               </StatusPill>
               <ToggleContainer>
@@ -476,7 +487,11 @@ export default function PaymentMethodsList() {
                     onClick={() => handleDeletePaymentMethod(paymentMethod)}
                   >
                     <FaTrash
-                      style={{ display: "block", width: "14px", height: "14px" }}
+                      style={{
+                        display: "block",
+                        width: "14px",
+                        height: "14px",
+                      }}
                     />
                   </DeleteButton>
                 </ActionButtons>

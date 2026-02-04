@@ -24,7 +24,7 @@ import {
 } from "./styled";
 import { ThemeContext } from "../../context/theme";
 import { AppContext } from "../../context/app";
-import { getPaymentMethodIcon } from "../../components/settings/paymentMethods/utils/iconMapper";
+import { getPaymentMethodIcon } from "../../utils/iconMapper";
 
 interface HeaderProps {
   isSettingsOpen: boolean;
