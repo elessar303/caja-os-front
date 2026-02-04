@@ -31,7 +31,11 @@ interface HeaderProps {
   onSettingsToggle: () => void;
   onBackToMain: () => void;
   onHomeClick: () => void;
-  onPaymentMethodClick?: (paymentMethodCode: string, paymentMethodName: string) => void;
+  onPaymentMethodClick?: (
+    paymentMethodCode: string,
+    paymentMethodName: string
+  ) => void;
+  onCobrarClick?: () => void;
   settingsView?: "main" | "products" | "stock" | "users" | "paymentMethods";
 }
 
@@ -41,6 +45,7 @@ export default function Header({
   onBackToMain,
   onHomeClick,
   onPaymentMethodClick,
+  onCobrarClick,
   settingsView = "main",
 }: HeaderProps) {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
@@ -151,6 +156,7 @@ export default function Header({
             onClick={() => {
               if (canCharge) {
                 setActiveButton(activeButton === "cobrar" ? null : "cobrar");
+                onCobrarClick?.();
               }
             }}
           >

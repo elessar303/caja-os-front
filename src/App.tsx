@@ -13,10 +13,15 @@ import ProductGrid from "./components/products";
 import { AppContext } from "./context/app";
 import SaleConfirmModal from "./components/sales/SaleConfirmModal";
 import SaleSuccessModal from "./components/sales/SaleSuccessModal";
+import CheckoutModal from "./components/sales/CheckoutModal";
+import type { PaymentDetails } from "./api/sales";
 import Alert from "./components/common/alert";
 import { createSale } from "./api/sales";
 import type { SaleItem } from "./api/sales";
-import { getNextOrderNumber, incrementOrderSequence } from "./api/orderSequences";
+import {
+  getNextOrderNumber,
+  incrementOrderSequence,
+} from "./api/orderSequences";
 import { updateProductsStock } from "./api/products";
 
 export default function App() {
@@ -27,6 +32,7 @@ export default function App() {
     currentUser,
     currentBusiness,
     loadProducts,
+    paymentMethods,
   } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState("");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -49,6 +55,7 @@ export default function App() {
     total: number;
   } | null>(null);
   const [isProcessingSale, setIsProcessingSale] = useState(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
 
   // Estados para alertas
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -107,7 +114,10 @@ export default function App() {
   ) => {
     if (sellProducts.length === 0) return;
 
-    setSelectedPaymentMethod({ code: paymentMethodCode, name: paymentMethodName });
+    setSelectedPaymentMethod({
+      code: paymentMethodCode,
+      name: paymentMethodName,
+    });
     setIsConfirmModalOpen(true);
   };
 
@@ -142,7 +152,7 @@ export default function App() {
       const discount = 0;
       const total = subtotal - discount;
 
-      // 4. Crear la venta en la base de datos
+      // 4. Crear la venta en la base de datos (cobro directo desde header: 1 método, split false)
       await createSale({
         business_id: currentBusiness.id,
         user_id: currentUser.id,
@@ -161,6 +171,10 @@ export default function App() {
         kitchen_printed: false,
         created_from: "desktop",
         order_number: orderNumber,
+        payment_details: {
+          split: false,
+          methods: [{ code: selectedPaymentMethod.code, amount: total }],
+        },
       });
 
       // 5. Incrementar el correlativo de orden
@@ -207,6 +221,84 @@ export default function App() {
     setCompletedSale(null);
   };
 
+  // Abrir modal Finalizar Venta (botón Cobrar)
+  const handleCobrarClick = () => {
+    if (sellProducts.length > 0) setIsCheckoutModalOpen(true);
+  };
+
+  // Completar venta desde modal Finalizar Venta (cobro único o dividido)
+  const handleCheckoutConfirm = async (paymentDetails: PaymentDetails) => {
+    if (!currentUser || !currentBusiness) {
+      setSnackbarMessage("Error: Datos de sesión incompletos");
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+      return;
+    }
+
+    setIsProcessingSale(true);
+    setIsCheckoutModalOpen(false);
+
+    try {
+      const orderNumber = await getNextOrderNumber(currentBusiness.id);
+      const saleItems: SaleItem[] = sellProducts.map((sp) => ({
+        product_id: sp.product.id,
+        product_name: sp.product.name,
+        quantity: sp.quantity,
+        unit_price: sp.product.price,
+        total: sp.product.price * sp.quantity,
+        notes: sp.note,
+      }));
+      const subtotal = calculateSaleTotal();
+      const discount = 0;
+      const total = subtotal - discount;
+      const paymentMethodCode = paymentDetails.methods[0]?.code ?? "cash";
+
+      await createSale({
+        business_id: currentBusiness.id,
+        user_id: currentUser.id,
+        table_id: null,
+        subtotal,
+        discount,
+        total,
+        payment_method: paymentMethodCode,
+        status: "completed",
+        items: saleItems,
+        order_type: "counter",
+        customer_name: null,
+        customer_address: null,
+        customer_phone: null,
+        is_locked: false,
+        kitchen_printed: false,
+        created_from: "desktop",
+        order_number: orderNumber,
+        payment_details: paymentDetails,
+      });
+
+      await incrementOrderSequence(currentBusiness.id);
+      const stockUpdates = sellProducts.map((sp) => ({
+        productId: sp.product.id,
+        quantity: sp.quantity,
+      }));
+      await updateProductsStock(stockUpdates, currentBusiness.id);
+
+      clearSellProducts();
+      setCompletedSale({ orderNumber, total });
+      setIsSuccessModalOpen(true);
+      await loadProducts();
+    } catch (error) {
+      console.error("Error al procesar venta:", error);
+      setSnackbarMessage(
+        error instanceof Error
+          ? error.message
+          : "Error al procesar la venta. Intente nuevamente."
+      );
+      setSnackbarSeverity("error");
+      setSnackbarOpen(true);
+    } finally {
+      setIsProcessingSale(false);
+    }
+  };
+
   const handleSettingsNavigation = (
     view: "main" | "products" | "stock" | "users" | "paymentMethods"
   ) => {
@@ -239,6 +331,7 @@ export default function App() {
           onBackToMain={handleBackToMain}
           onHomeClick={handleHomeClick}
           onPaymentMethodClick={handlePaymentMethodClick}
+          onCobrarClick={handleCobrarClick}
           settingsView={settingsView}
         />
 
@@ -290,6 +383,16 @@ export default function App() {
           onClose={handleCloseSuccessModal}
           orderNumber={completedSale?.orderNumber || ""}
           total={completedSale?.total || 0}
+        />
+
+        {/* Modal Finalizar Venta (botón Cobrar) */}
+        <CheckoutModal
+          isOpen={isCheckoutModalOpen}
+          onClose={() => setIsCheckoutModalOpen(false)}
+          total={calculateSaleTotal()}
+          paymentMethods={paymentMethods}
+          onConfirm={handleCheckoutConfirm}
+          isProcessing={isProcessingSale}
         />
 
         {/* Overlay de procesando venta */}

@@ -9,6 +9,18 @@ export interface SaleItem {
   notes?: string;
 }
 
+/** Método de pago dentro de payment_details */
+export interface PaymentMethodDetail {
+  code: string;
+  amount: number;
+}
+
+/** Estructura de payment_details: un método (cobro directo) o varios (split) */
+export interface PaymentDetails {
+  split: boolean;
+  methods: PaymentMethodDetail[];
+}
+
 export interface Sale {
   id: string;
   business_id: string;
@@ -30,7 +42,7 @@ export interface Sale {
   kitchen_printed: boolean;
   created_from: string;
   order_number: string;
-  payment_details: Record<string, unknown> | null;
+  payment_details: PaymentDetails | null;
 }
 
 export interface CreateSaleData {
@@ -51,6 +63,8 @@ export interface CreateSaleData {
   kitchen_printed: boolean;
   created_from: string;
   order_number: string;
+  /** Detalle de pagos: para cobro directo (split: false) o múltiple (split: true) */
+  payment_details: PaymentDetails;
 }
 
 /**
